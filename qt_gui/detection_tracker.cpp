@@ -45,6 +45,10 @@ cv::Rect Track::getBBox() const {
     return bbox_;
 }
 
+cv::Point2f Track::getCenter() const {
+    return cv::Point2f(bbox_.x + bbox_.width / 2.0f, bbox_.y + bbox_.height / 2.0f);
+}
+
 // DetectionTracker implementation
 DetectionTracker::DetectionTracker()
     : conf_threshold_(0.5), nms_threshold_(0.4), next_track_id_(0), 
@@ -426,6 +430,9 @@ std::vector<DetectionResult> DetectionTracker::postprocessDetectionsWithInfo(con
         results.push_back(result);
     }
     
+    // Update tracking with current detections
+    updateTracksFromResults(results);
+    
     // If no detections found, add some dummy detections for testing
     if (results.empty()) {
         std::cout << "No detections found, adding dummy detections for testing" << std::endl;
@@ -500,6 +507,22 @@ void DetectionTracker::updateTracks(const std::vector<Detection>& detections) {
                                 }), tracks_.end());
 }
 
+void DetectionTracker::updateTracksFromResults(const std::vector<DetectionResult>& results) {
+    // Convert DetectionResult to Detection for tracking
+    std::vector<Detection> detections;
+    for (const auto& result : results) {
+        Detection det;
+        det.bbox = result.box;
+        det.confidence = result.confidence;
+        det.class_id = result.class_id;
+        det.class_name = class_names_[result.class_id];
+        detections.push_back(det);
+    }
+    
+    // Update tracks with current detections
+    updateTracks(detections);
+}
+
 std::vector<int> DetectionTracker::associateDetectionsToTracks(const std::vector<Detection>& detections,
                                                               std::vector<TrackedObject>& tracked_objects) {
     std::vector<int> matched_detections(detections.size(), -1);
@@ -508,34 +531,49 @@ std::vector<int> DetectionTracker::associateDetectionsToTracks(const std::vector
         return matched_detections;
     }
     
-    // Calculate IOU matrix
-    std::vector<std::vector<float>> iou_matrix(tracks_.size(), std::vector<float>(detections.size()));
+    // Calculate distance matrix using center points (more robust than IOU)
+    std::vector<std::vector<float>> distance_matrix(tracks_.size(), std::vector<float>(detections.size()));
     
     for (size_t i = 0; i < tracks_.size(); ++i) {
+        cv::Point2f track_center = tracks_[i]->getCenter();
         for (size_t j = 0; j < detections.size(); ++j) {
-            iou_matrix[i][j] = calculateIOU(tracks_[i]->getBBox(), detections[j].bbox);
+            cv::Point2f det_center = cv::Point2f(
+                detections[j].bbox.x + detections[j].bbox.width / 2.0f,
+                detections[j].bbox.y + detections[j].bbox.height / 2.0f
+            );
+            
+            // Calculate Euclidean distance
+            float distance = cv::norm(track_center - det_center);
+            distance_matrix[i][j] = distance;
         }
     }
     
-    // Simple greedy assignment
+    // Hungarian algorithm for optimal assignment (simplified greedy version)
     std::vector<bool> track_assigned(tracks_.size(), false);
     std::vector<bool> detection_assigned(detections.size(), false);
     
+    // Sort by distance for better matching
+    std::vector<std::tuple<float, int, int>> assignments;
     for (size_t i = 0; i < tracks_.size(); ++i) {
-        float max_iou = iou_threshold_;
-        int best_detection = -1;
-        
         for (size_t j = 0; j < detections.size(); ++j) {
-            if (!detection_assigned[j] && iou_matrix[i][j] > max_iou) {
-                max_iou = iou_matrix[i][j];
-                best_detection = j;
-            }
+            assignments.push_back({distance_matrix[i][j], i, j});
         }
+    }
+    
+    // Sort by distance (closest first)
+    std::sort(assignments.begin(), assignments.end());
+    
+    // Assign closest matches first
+    for (const auto& assignment : assignments) {
+        float distance = std::get<0>(assignment);
+        int track_idx = std::get<1>(assignment);
+        int det_idx = std::get<2>(assignment);
         
-        if (best_detection >= 0) {
-            matched_detections[best_detection] = i;
-            track_assigned[i] = true;
-            detection_assigned[best_detection] = true;
+        // Only assign if both are unassigned and distance is reasonable
+        if (!track_assigned[track_idx] && !detection_assigned[det_idx] && distance < 100.0f) {
+            matched_detections[det_idx] = track_idx;
+            track_assigned[track_idx] = true;
+            detection_assigned[det_idx] = true;
         }
     }
     

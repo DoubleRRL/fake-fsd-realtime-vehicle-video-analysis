@@ -107,6 +107,7 @@ private:
     
     // Tracking methods
     void updateTracks(const std::vector<Detection>& detections);
+    void updateTracksFromResults(const std::vector<DetectionResult>& results);
     std::vector<int> associateDetectionsToTracks(const std::vector<Detection>& detections,
                                                 std::vector<TrackedObject>& tracked_objects);
     float calculateIOU(const cv::Rect& rect1, const cv::Rect& rect2);
@@ -126,6 +127,7 @@ public:
     void predict();
     void update(const cv::Rect& bbox, float confidence);
     cv::Rect getBBox() const;
+    cv::Point2f getCenter() const;
     int getTrackId() const { return track_id_; }
     int getClassId() const { return class_id_; }
     float getConfidence() const { return confidence_; }

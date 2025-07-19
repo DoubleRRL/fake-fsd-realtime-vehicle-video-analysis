@@ -150,14 +150,27 @@ signals:
 
 private slots:
     void onVideoTimer() {
-        if (currentFrame < totalFrames - 1) {
-            currentFrame++;
-            frameSlider->setValue(currentFrame);
-            loadCurrentFrame();
-            updateFrameInfo();
-            emit frameChanged(currentFrame);
-        } else {
-            // End of video
+        try {
+            if (currentFrame < totalFrames - 1) {
+                currentFrame++;
+                frameSlider->setValue(currentFrame);
+                loadCurrentFrame();
+                updateFrameInfo();
+                emit frameChanged(currentFrame);
+            } else {
+                // End of video
+                isPlaying = false;
+                playButton->setText("▶️ Play");
+                videoTimer->stop();
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error in video timer: " << e.what() << std::endl;
+            // Stop playback on error to prevent further crashes
+            isPlaying = false;
+            playButton->setText("▶️ Play");
+            videoTimer->stop();
+        } catch (...) {
+            std::cerr << "Unknown error in video timer" << std::endl;
             isPlaying = false;
             playButton->setText("▶️ Play");
             videoTimer->stop();
@@ -165,12 +178,18 @@ private slots:
     }
 
     void onFrameSliderChanged(int value) {
-        if (!videoCapture.isOpened()) return;
-        
-        currentFrame = value;
-        loadCurrentFrame();
-        updateFrameInfo();
-        emit frameChanged(currentFrame);
+        try {
+            if (!videoCapture.isOpened()) return;
+            
+            currentFrame = value;
+            loadCurrentFrame();
+            updateFrameInfo();
+            emit frameChanged(currentFrame);
+        } catch (const std::exception& e) {
+            std::cerr << "Error in frame slider: " << e.what() << std::endl;
+        } catch (...) {
+            std::cerr << "Unknown error in frame slider" << std::endl;
+        }
     }
 
 private:
