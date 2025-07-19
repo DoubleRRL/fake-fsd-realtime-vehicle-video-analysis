@@ -1,0 +1,114 @@
+# Build directories
+build/
+build-*/
+install/
+dist/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic Libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static Libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Core ML models (can be large)
+*.mlmodel
+models/*.mlmodel
+
+# Sample videos (can be large)
+data/sample_videos/*.mp4
+data/sample_videos/*.avi
+data/sample_videos/*.mov
+
+# Benchmark outputs
+benchmark_output.mp4
+benchmark_report.json
+performance_summary.md
+quick_test_results.json
+demo.mp4
+demo_hq.mp4
+recruiter_demo.mp4
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Python cache (if any Python scripts remain)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Metal shader cache
+*.metallib
+*.air
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+
+# Package managers
+node_modules/
+vendor/
+
+# Documentation build
+docs/_build/
+site/
+
+# Test outputs
+test_results/
+coverage/
+*.gcov
+*.gcda
+*.gcno 
