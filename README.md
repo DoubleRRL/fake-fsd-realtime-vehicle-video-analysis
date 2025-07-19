@@ -1,142 +1,49 @@
-# Real-Time Video Analysis Pipeline
-
-[![Build Status](https://github.com/DoubleRRL/fake-fsd-realtime-vehicle-video-analysis/workflows/CI/badge.svg)](https://github.com/DoubleRRL/fake-fsd-realtime-vehicle-video-analysis/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%2FM2%2FM3-blue)](https://developer.apple.com/documentation/apple-silicon)
-
-A professional video analysis application with multiple GUI interfaces for real-time video processing, annotation display, and performance monitoring. Features file browsing, UA-DETRAC dataset support, and interactive controls.
+# Real-Time Video Analysis App
 
 ## 🚀 Features
 
-- **File Browser**: Browse and select video files from your computer
-- **UA-DETRAC Support**: Automatic loading and display of annotation files
-- **Real-Time Annotations**: Display detection boxes with vehicle type labels
-- **Performance Monitoring**: Real-time FPS, latency, and processing metrics
-- **Interactive Controls**: Adjust confidence thresholds, toggle features
-- **Playback Controls**: Play, pause, step through frames
-- **No Camera Access**: File browser only, no permissions required
-
-## 📊 Application
-
-A professional video analysis tool with file browser and annotation support.
+- File Browser: Browse and select video files from your computer
+- UA-DETRAC Support: Automatic loading and display of annotation files
+- Real-Time Annotations: Display detection boxes with vehicle type labels
+- Performance Monitoring: Real-time FPS, latency, and processing metrics
+- Interactive Controls: Adjust confidence thresholds, toggle features
+- Playback Controls: Play, pause, step through frames
+- No Camera Access: File browser only, no permissions required
 
 ## 🛠️ Quick Start
 
-### What You Need
-
-- **Mac with Apple Silicon** (M1, M2, or M3 chip) or Intel Mac
-- **macOS 12.0 or newer** (Monterey, Ventura, or Sonoma)
-- **At least 4GB of RAM**
-- **1GB of free storage space**
-
-### Step 1: Install Required Tools
-
-First, you need to install some tools. Open Terminal (press `Cmd + Space`, type "Terminal", press Enter) and run:
+### 1. Install Dependencies
 
 ```bash
-# Install Homebrew (if you don't have it)
+# Install Homebrew if you don't have it
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Xcode Command Line Tools
-xcode-select --install
-
-# Install OpenCV and GLFW (this might take a few minutes)
+# Install OpenCV and GLFW
 brew install opencv glfw
 ```
 
-## 🚀 Super Simple Instructions (For Total Beginners)
-
-### Step 1: Open Terminal
-- Press `Cmd + Space` on your keyboard
-- Type "Terminal" and press Enter
-
-### Step 2: Install Required Software
-Copy and paste these commands one by one:
+### 2. Run the App
 
 ```bash
-# Install Homebrew (if you don't have it)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Install required software
-brew install opencv glfw
-```
-
-### Step 3: Download the Project
-```bash
-# Go to your Downloads folder
-cd ~/Downloads
-
-# Download the project (replace with your actual download method)
-# If you have the files locally, just navigate to the folder
-cd "/Users/RRL_1/realtime car vision"
-```
-
-### Step 4: Run the Application
-
-```bash
+cd /path/to/your/project/root
 ./scripts/build_and_run.sh
 ```
 
-That's it! The script will automatically build and run the application for you.
-
-**With a specific video file:**
-```bash
-./scripts/build_and_run.sh /path/to/your/video.mp4
-```
-
-### What You'll See
-
-- **File Browser**: Browse and select video files from your computer
-- **UA-DETRAC Support**: Automatic loading of annotation files (.xml)
-- **Real-time Annotations**: Display detection boxes with vehicle types
-- **Playback Controls**: Play, pause, step through frames
-- **Performance Monitoring**: FPS, latency, and processing metrics
-- **Interactive Controls**: Adjust confidence thresholds, toggle features
-
-### Controls
-
-- **SPACE**: Play/Pause video
-- **LEFT/RIGHT**: Step through frames
-- **A**: Toggle annotations
-- **P**: Toggle performance overlay
-- **F**: Toggle file browser
-- **ESC**: Quit
-- **Mouse**: Select files, adjust settings
-
-### Troubleshooting
-
-**If you get OpenCV errors during build:**
-```bash
-# Try this alternative cmake command:
-cmake -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/opencv .
-make -j$(nproc)
-```
-
-**If you get errors about missing files:**
-- Make sure you're in the `standalone_demo` folder when running commands
-- Check that all the build steps completed successfully
-
-**If the program runs slowly:**
-- Close other apps to free up memory
-- Try using a lower resolution video file
-
-**If you get permission errors:**
-- Make sure you have Xcode Command Line Tools installed
-- Try running `sudo xcode-select --reset` if needed
-
-**If you get "video file not found" errors:**
-- Make sure the video file path is correct
-- Try using the file browser instead: `./scripts/build_and_run.sh`
-
-### Basic Usage
+- The professional GUI will open. Use the file browser to select a video file.
+- Or run with a specific video file:
 
 ```bash
-# Start the application
-./scripts/build_and_run.sh
-
-# Or load a specific video file
 ./scripts/build_and_run.sh /path/to/video.mp4
 ```
+
+## Controls
+- SPACE: Play/Pause
+- LEFT/RIGHT: Step through frames
+- A: Toggle annotations
+- P: Toggle performance overlay
+- F: Toggle file browser
+- ESC: Quit
+- Mouse: Select files, adjust settings
 
 ## 📋 Requirements
 
