@@ -1,99 +1,254 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <chrono>
+#include <GLFW/glfw3.h>
+#include <string>
+#include <vector>
+#include <filesystem>
+#include <algorithm>
 
-int main(int argc, char** argv) {
-    // Check if video file is provided
-    if (argc < 2) {
-        std::cout << "Usage: " << argv[0] << " <video_file>" << std::endl;
-        std::cout << "Or use: " << argv[0] << " camera" << std::endl;
-        return -1;
-    }
+namespace fs = std::filesystem;
 
+class SimpleVideoPlayer {
+private:
+    GLFWwindow* window;
     cv::VideoCapture cap;
+    cv::Mat currentFrame;
+    bool isPlaying;
+    int currentFrameIndex;
+    double fps;
+    int totalFrames;
+    std::string currentVideoPath;
     
-    // Open video file or camera
-    if (std::string(argv[1]) == "camera") {
-        std::cout << "WARNING: This will request camera access!" << std::endl;
-        std::cout << "Press Enter to continue or Ctrl+C to cancel..." << std::endl;
-        std::cin.get();
-        
-        cap.open(0); // Open default camera
-        std::cout << "Opening camera..." << std::endl;
-    } else {
-        cap.open(argv[1]); // Open video file
-        std::cout << "Opening video file: " << argv[1] << std::endl;
+    // File browser state
+    std::string currentDirectory;
+    std::vector<std::string> videoFiles;
+    int selectedFileIndex;
+    bool showFileBrowser;
+
+public:
+    SimpleVideoPlayer() : window(nullptr), isPlaying(false), currentFrameIndex(0), 
+                         selectedFileIndex(0), showFileBrowser(true) {
+        currentDirectory = fs::current_path().string();
+        scanForVideoFiles();
     }
 
-    if (!cap.isOpened()) {
-        std::cout << "Error: Could not open video source!" << std::endl;
+    ~SimpleVideoPlayer() {
+        if (cap.isOpened()) cap.release();
+        if (window) glfwDestroyWindow(window);
+        glfwTerminate();
+    }
+
+    bool initialize() {
+        if (!glfwInit()) {
+            std::cerr << "Failed to initialize GLFW" << std::endl;
+            return false;
+        }
+
+        window = glfwCreateWindow(1200, 800, "Simple Video Player", nullptr, nullptr);
+        if (!window) {
+            std::cerr << "Failed to create GLFW window" << std::endl;
+            glfwTerminate();
+            return false;
+        }
+
+        glfwMakeContextCurrent(window);
+        return true;
+    }
+
+    void scanForVideoFiles() {
+        videoFiles.clear();
+        for (const auto& entry : fs::directory_iterator(currentDirectory)) {
+            if (entry.is_regular_file()) {
+                std::string ext = entry.path().extension().string();
+                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+                
+                if (ext == ".mp4" || ext == ".avi" || ext == ".mov" || ext == ".mkv" || 
+                    ext == ".wmv" || ext == ".flv" || ext == ".webm") {
+                    videoFiles.push_back(entry.path().filename().string());
+                }
+            }
+        }
+    }
+
+    bool loadVideo(const std::string& filename) {
+        std::string fullPath = currentDirectory + "/" + filename;
+        
+        if (cap.isOpened()) cap.release();
+        
+        cap.open(fullPath);
+        if (!cap.isOpened()) {
+            std::cerr << "Failed to open video: " << fullPath << std::endl;
+            return false;
+        }
+
+        currentVideoPath = fullPath;
+        fps = cap.get(cv::CAP_PROP_FPS);
+        totalFrames = static_cast<int>(cap.get(cv::CAP_PROP_FRAME_COUNT));
+        currentFrameIndex = 0;
+        isPlaying = false;
+
+        std::cout << "Loaded video: " << filename << std::endl;
+        std::cout << "FPS: " << fps << ", Total frames: " << totalFrames << std::endl;
+        
+        return true;
+    }
+
+    void renderFileBrowser() {
+        if (!showFileBrowser) return;
+
+        // Simple file browser using OpenGL
+        glViewport(0, 0, 300, 800);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, 300, 800, 0, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        // Background
+        glColor3f(0.2f, 0.2f, 0.2f);
+        glBegin(GL_QUADS);
+        glVertex2f(0, 0);
+        glVertex2f(300, 0);
+        glVertex2f(300, 800);
+        glVertex2f(0, 800);
+        glEnd();
+
+        // File list background
+        int y = 60;
+        for (int i = 0; i < videoFiles.size(); i++) {
+            if (i == selectedFileIndex) {
+                glColor3f(0.0f, 0.5f, 1.0f); // Selected file
+            } else {
+                glColor3f(0.3f, 0.3f, 0.3f); // Normal file
+            }
+            
+            glBegin(GL_QUADS);
+            glVertex2f(5, y - 20);
+            glVertex2f(295, y - 20);
+            glVertex2f(295, y + 5);
+            glVertex2f(5, y + 5);
+            glEnd();
+            y += 30;
+        }
+    }
+
+    void renderVideo() {
+        if (!cap.isOpened()) return;
+
+        glViewport(300, 0, 900, 800);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, 900, 800, 0, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        // Get current frame
+        if (isPlaying) {
+            cap >> currentFrame;
+            if (currentFrame.empty()) {
+                isPlaying = false;
+                currentFrameIndex = totalFrames - 1;
+                cap.set(cv::CAP_PROP_POS_FRAMES, currentFrameIndex);
+                cap >> currentFrame;
+            } else {
+                currentFrameIndex++;
+            }
+        } else {
+            cap.set(cv::CAP_PROP_POS_FRAMES, currentFrameIndex);
+            cap >> currentFrame;
+        }
+
+        if (!currentFrame.empty()) {
+            // Convert BGR to RGB and flip
+            cv::Mat rgbFrame;
+            cv::cvtColor(currentFrame, rgbFrame, cv::COLOR_BGR2RGB);
+            cv::flip(rgbFrame, rgbFrame, 0);
+
+            // Display frame
+            glDrawPixels(rgbFrame.cols, rgbFrame.rows, GL_RGB, GL_UNSIGNED_BYTE, rgbFrame.data);
+        }
+
+        // Simple info overlay using colored rectangles
+        glColor3f(0.0f, 0.0f, 0.0f);
+        glBegin(GL_QUADS);
+        glVertex2f(0, 0);
+        glVertex2f(200, 0);
+        glVertex2f(200, 80);
+        glVertex2f(0, 80);
+        glEnd();
+    }
+
+    void handleInput() {
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+            if (selectedFileIndex > 0) selectedFileIndex--;
+        }
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+            if (selectedFileIndex < videoFiles.size() - 1) selectedFileIndex++;
+        }
+        if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
+            if (!videoFiles.empty()) {
+                loadVideo(videoFiles[selectedFileIndex]);
+            }
+        }
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+            isPlaying = !isPlaying;
+        }
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+            if (currentFrameIndex > 0) {
+                currentFrameIndex--;
+                cap.set(cv::CAP_PROP_POS_FRAMES, currentFrameIndex);
+            }
+        }
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+            if (currentFrameIndex < totalFrames - 1) {
+                currentFrameIndex++;
+                cap.set(cv::CAP_PROP_POS_FRAMES, currentFrameIndex);
+            }
+        }
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS) {
+            showFileBrowser = !showFileBrowser;
+        }
+    }
+
+    void run() {
+        while (!glfwWindowShouldClose(window)) {
+            glClear(GL_COLOR_BUFFER_BIT);
+            
+            handleInput();
+            renderFileBrowser();
+            renderVideo();
+            
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+            
+            // Control playback speed
+            if (isPlaying && fps > 0) {
+                glfwWaitEventsTimeout(1.0 / fps);
+            } else {
+                glfwWaitEventsTimeout(0.016); // ~60 FPS for UI
+            }
+        }
+    }
+};
+
+int main() {
+    SimpleVideoPlayer player;
+    
+    if (!player.initialize()) {
+        std::cerr << "Failed to initialize video player" << std::endl;
         return -1;
     }
 
-    // Get video properties
-    double fps = cap.get(cv::CAP_PROP_FPS);
-    int width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
-    int height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
-    
-    std::cout << "Video properties:" << std::endl;
-    std::cout << "  Resolution: " << width << "x" << height << std::endl;
-    std::cout << "  FPS: " << fps << std::endl;
+    std::cout << "Simple Video Player" << std::endl;
+    std::cout << "Controls:" << std::endl;
+    std::cout << "  UP/DOWN: Select video file" << std::endl;
+    std::cout << "  ENTER: Load selected video" << std::endl;
+    std::cout << "  SPACE: Play/Pause" << std::endl;
+    std::cout << "  LEFT/RIGHT: Step through frames" << std::endl;
+    std::cout << "  F: Toggle file browser" << std::endl;
+    std::cout << "  ESC: Quit" << std::endl;
 
-    cv::Mat frame;
-    int frameCount = 0;
-    auto startTime = std::chrono::high_resolution_clock::now();
-
-    std::cout << "\nPress 'q' to quit, 's' to save current frame" << std::endl;
-
-    while (true) {
-        cap >> frame;
-        
-        if (frame.empty()) {
-            std::cout << "End of video or camera disconnected" << std::endl;
-            break;
-        }
-
-        frameCount++;
-        
-        // Calculate current FPS
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime);
-        double currentFPS = (frameCount * 1000.0) / elapsed.count();
-
-        // Add text overlay with frame info
-        std::string info = "Frame: " + std::to_string(frameCount) + 
-                          " | FPS: " + std::to_string(static_cast<int>(currentFPS));
-        
-        cv::putText(frame, info, cv::Point(10, 30), 
-                   cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 255, 0), 2);
-
-        // Show the frame
-        cv::imshow("Real-Time Video Processor", frame);
-
-        // Handle key presses
-        char key = cv::waitKey(1) & 0xFF;
-        if (key == 'q') {
-            std::cout << "Quitting..." << std::endl;
-            break;
-        } else if (key == 's') {
-            std::string filename = "frame_" + std::to_string(frameCount) + ".jpg";
-            cv::imwrite(filename, frame);
-            std::cout << "Saved frame to: " << filename << std::endl;
-        }
-    }
-
-    // Clean up
-    cap.release();
-    cv::destroyAllWindows();
-
-    // Print final statistics
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto totalTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-    
-    std::cout << "\nProcessing complete!" << std::endl;
-    std::cout << "Total frames processed: " << frameCount << std::endl;
-    std::cout << "Total time: " << totalTime.count() / 1000.0 << " seconds" << std::endl;
-    std::cout << "Average FPS: " << (frameCount * 1000.0) / totalTime.count() << std::endl;
-
+    player.run();
     return 0;
 } 

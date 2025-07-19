@@ -32,14 +32,11 @@ if [ $? -eq 0 ]; then
     echo "   Press 'q' to quit, 's' to save a frame"
     echo ""
     
-    # Check if camera argument is provided
-    if [ "$1" = "camera" ]; then
-        ./$EXECUTABLE camera
-    elif [ -n "$1" ] && [ "$1" != "pro" ]; then
+    # Check if video file argument is provided
+    if [ -n "$1" ] && [ "$1" != "pro" ]; then
         ./$EXECUTABLE "$1"
     else
         echo "📹 Usage examples:"
-        echo "   $0 camera                    # Use webcam (demo)"
         echo "   $0 pro                       # Professional version (file browser)"
         echo "   $0 /path/to/video.mp4       # Use video file (demo)"
         echo ""
@@ -47,8 +44,8 @@ if [ $? -eq 0 ]; then
             echo "🎬 Starting professional version..."
             ./$EXECUTABLE
         else
-            echo "🎬 Starting with webcam..."
-            ./$EXECUTABLE camera
+            echo "🎬 Starting demo version..."
+            ./$EXECUTABLE
         fi
     fi
 else
