@@ -4,50 +4,51 @@ set -e
 
 # Print header
 clear || true
-echo "🚀 Building and Running Real-Time Video Analysis Demo"
+echo "🚀 Building and Running Professional Video Analysis"
 echo "=================================================="
 
 # Check if running from project root (look for a file that always exists)
-if [ ! -f standalone_demo/CMakeLists_professional.txt ]; then
+if [ ! -f qt_gui/CMakeLists.txt ]; then
     echo "❌ Error: Please run this script from the project root directory"
     echo "   Current directory: $(pwd)"
-    echo "   Expected file: standalone_demo/CMakeLists_professional.txt"
+    echo "   Expected file: qt_gui/CMakeLists.txt"
     exit 1
 fi
 
-cd standalone_demo
-
-# Always use the professional CMakeLists
-cp CMakeLists_professional.txt CMakeLists.txt
-
-# Build
-cmake -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/opencv .
-EXECUTABLE="ProfessionalVideoGUI"
-
-# Fix GLFW linking issue if link.txt exists
-if [ -f "CMakeFiles/ProfessionalVideoGUI.dir/link.txt" ]; then
-    echo "🔧 Fixing GLFW library path..."
-    sed -i '' 's/-lglfw/\/opt\/homebrew\/lib\/libglfw.dylib/g' CMakeFiles/ProfessionalVideoGUI.dir/link.txt
+# Check if Qt6 is installed
+if ! brew list qt@6 >/dev/null 2>&1; then
+    echo "❌ Qt6 not found. Installing Qt6..."
+    brew install qt@6
 fi
 
+cd qt_gui
+
+# Build the Qt application
+echo "🔨 Building Qt application..."
+cmake -DCMAKE_PREFIX_PATH="/opt/homebrew/opt/opencv;/opt/homebrew/opt/qt@6" .
 make -j$(sysctl -n hw.ncpu)
 
 if [ $? -eq 0 ]; then
     echo "✅ Build successful!"
     echo ""
-    echo "🎥 Running the professional GUI..."
-    echo "   Use the file browser to select a video file."
+    echo "🎥 Running Professional Video Analysis..."
+    echo "   Features:"
+    echo "   - File browser for easy video selection"
+    echo "   - Real-time video playback"
+    echo "   - Annotation overlay support"
+    echo "   - Performance monitoring"
     echo ""
+    
     # Check if video file argument is provided
     if [ -n "$1" ]; then
-        ./$EXECUTABLE "$1"
+        ./ProfessionalVideoAnalysis.app/Contents/MacOS/ProfessionalVideoAnalysis "$1"
     else
         echo "📹 Usage examples:"
-        echo "   $0                           # Professional version (file browser)"
+        echo "   $0                           # Open with file browser"
         echo "   $0 /path/to/video.mp4       # Load specific video file"
         echo ""
-        echo "🎬 Starting professional version..."
-        ./$EXECUTABLE
+        echo "🎬 Starting application..."
+        ./ProfessionalVideoAnalysis.app/Contents/MacOS/ProfessionalVideoAnalysis
     fi
 else
     echo "❌ Build failed!"
