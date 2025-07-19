@@ -182,6 +182,8 @@ std::vector<Detection> DetectionTracker::detectObjects(const cv::Mat& frame) {
             return detections;
         }
         
+        std::cout << "Frame size: " << frame.size() << ", confidence threshold: " << conf_threshold_ << std::endl;
+        
         // Preprocess frame
         cv::Mat blob = preprocessFrame(frame);
         
@@ -196,8 +198,12 @@ std::vector<Detection> DetectionTracker::detectObjects(const cv::Mat& frame) {
             return detections;
         }
         
+        std::cout << "Model output shape: " << outputs[0].size() << std::endl;
+        
         // Postprocess detections with confidence and class info
         auto detection_results = postprocessDetectionsWithInfo(outputs[0], frame.size());
+        
+        std::cout << "Raw detection results: " << detection_results.size() << std::endl;
         
         // Convert to Detection objects
         for (const auto& result : detection_results) {
@@ -208,6 +214,8 @@ std::vector<Detection> DetectionTracker::detectObjects(const cv::Mat& frame) {
             det.class_name = (result.class_id < class_names_.size()) ? 
                             class_names_[result.class_id] : "unknown";
             detections.push_back(det);
+            std::cout << "Detection: " << det.class_name << " (conf: " << det.confidence 
+                     << ") at " << det.bbox << std::endl;
         }
         
         return detections;
@@ -315,37 +323,61 @@ std::vector<DetectionResult> DetectionTracker::postprocessDetectionsWithInfo(con
         return results;
     }
     
-    // YOLOv8 output format: [batch, 84, 8400] where 84 = 4 (bbox) + 80 (classes)
-    // Transpose to [8400, 84] for easier processing
-    cv::Mat transposed;
-    cv::transpose(output.reshape(1, output.total()), transposed);
+    std::cout << "Output shape: " << output.size() << std::endl;
+    
+    // Handle different output formats
+    cv::Mat processed_output;
+    if (output.size() == cv::Size(84, 1)) {
+        // Single detection output - reshape to standard format
+        processed_output = output.reshape(1, 1);
+        std::cout << "Single detection format detected" << std::endl;
+    } else if (output.size() == cv::Size(1, 84)) {
+        // Transposed single detection
+        processed_output = output.t();
+        std::cout << "Transposed single detection format detected" << std::endl;
+    } else {
+        // Try standard YOLOv8 format
+        processed_output = output.reshape(1, output.total() / 84);
+        std::cout << "Standard YOLOv8 format detected" << std::endl;
+    }
     
     // Extract bounding boxes and class probabilities
     std::vector<cv::Rect> detected_boxes;
     std::vector<float> confidences;
     std::vector<int> class_ids;
     
-    for (int i = 0; i < transposed.rows; ++i) {
+    for (int i = 0; i < processed_output.rows; ++i) {
         // Get class probabilities (last 80 values)
-        cv::Mat class_scores = transposed.row(i).colRange(4, 84);
+        cv::Mat class_scores = processed_output.row(i).colRange(4, 84);
         cv::Point class_id;
         double confidence;
         cv::minMaxLoc(class_scores, nullptr, &confidence, nullptr, &class_id);
         
+        // Normalize confidence to 0-1 range if it's too high
+        if (confidence > 1.0) {
+            confidence = confidence / 1000.0; // Scale down if needed
+        }
+        
+        std::cout << "Raw confidence: " << confidence << " for class " << class_id.x << std::endl;
+        
         // Apply confidence threshold
         if (confidence > conf_threshold_) {
             // Get bounding box coordinates (first 4 values)
-            float* data = transposed.ptr<float>(i);
+            float* data = processed_output.ptr<float>(i);
             float x_center = data[0];
             float y_center = data[1];
             float width = data[2];
             float height = data[3];
+            
+            std::cout << "Raw bbox: center(" << x_center << "," << y_center << ") size(" << width << "," << height << ")" << std::endl;
             
             // Convert from normalized coordinates to pixel coordinates
             int x = static_cast<int>((x_center - width/2) * original_size.width);
             int y = static_cast<int>((y_center - height/2) * original_size.height);
             int w = static_cast<int>(width * original_size.width);
             int h = static_cast<int>(height * original_size.height);
+            
+            std::cout << "Pixel bbox: (" << x << "," << y << "," << w << "," << h << ")" << std::endl;
             
             // Ensure box is within image bounds
             x = std::max(0, std::min(x, original_size.width - 1));

@@ -135,6 +135,10 @@ public:
 
     void setConfidenceThreshold(double threshold) {
         confidenceThreshold = threshold;
+        if (detector_) {
+            detector_->setConfidenceThreshold(static_cast<float>(threshold));
+            std::cout << "Confidence threshold updated to: " << threshold << std::endl;
+        }
         if (videoCapture.isOpened()) {
             loadCurrentFrame();
         }
@@ -247,7 +251,9 @@ private:
         // Run detection and tracking if enabled with error handling
         if (showAnnotations && detection_initialized_ && detector_) {
             try {
+                std::cout << "Processing frame " << currentFrame << " with detection..." << std::endl;
                 current_tracked_objects_ = detector_->processFrame(frame);
+                std::cout << "Detected " << current_tracked_objects_.size() << " objects" << std::endl;
                 drawDetections(frame, current_tracked_objects_);
             } catch (const std::exception& e) {
                 std::cerr << "Error during detection processing: " << e.what() << std::endl;
@@ -348,7 +354,7 @@ private:
     int currentFrame = 0;
     bool isPlaying = false;
     bool showAnnotations = false;
-    double confidenceThreshold = 0.5;
+    double confidenceThreshold = 0.3; // Lower threshold for better detection
     
 public:
     // Detection and tracking
@@ -535,7 +541,7 @@ private:
         confidenceSpinBox = new QDoubleSpinBox;
         confidenceSpinBox->setRange(0.0, 1.0);
         confidenceSpinBox->setSingleStep(0.1);
-        confidenceSpinBox->setValue(0.5);
+        confidenceSpinBox->setValue(0.3);
         confidenceSpinBox->setDecimals(2);
         controlsLayout->addWidget(confidenceLabel);
         controlsLayout->addWidget(confidenceSpinBox);
