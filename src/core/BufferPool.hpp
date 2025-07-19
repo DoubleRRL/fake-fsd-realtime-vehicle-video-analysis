@@ -5,8 +5,12 @@
 #include <mutex>
 #include <atomic>
 #include <chrono>
-#include <Metal/Metal.h>
-#include <CoreVideo/CoreVideo.h>
+
+// Forward declarations
+typedef struct __CVBuffer* CVPixelBufferRef;
+typedef unsigned int OSType;
+@protocol MTLBuffer;
+@protocol MTLDevice;
 
 namespace RealTimeVideoAnalysis {
 

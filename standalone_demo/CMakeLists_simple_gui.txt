@@ -1,0 +1,40 @@
+cmake_minimum_required(VERSION 3.20)
+project(SimpleVideoGUI)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find required packages
+find_package(OpenCV REQUIRED)
+find_package(PkgConfig REQUIRED)
+
+# Find GLFW
+pkg_check_modules(GLFW REQUIRED glfw3)
+
+# Find OpenGL
+find_package(OpenGL REQUIRED)
+
+# Add executable
+add_executable(SimpleVideoGUI simple_gui_demo.cpp)
+
+# Include directories
+target_include_directories(SimpleVideoGUI PRIVATE 
+    ${OpenCV_INCLUDE_DIRS}
+    ${GLFW_INCLUDE_DIRS}
+)
+
+# Link libraries
+target_link_libraries(SimpleVideoGUI 
+    ${OpenCV_LIBS}
+    ${GLFW_LIBRARIES}
+    OpenGL::GL
+)
+
+# Compiler flags
+target_compile_options(SimpleVideoGUI PRIVATE ${GLFW_CFLAGS_OTHER})
+
+# Set C++ standard
+set_target_properties(SimpleVideoGUI PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+) 

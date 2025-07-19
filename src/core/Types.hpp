@@ -6,12 +6,9 @@
 #include <chrono>
 #include <memory>
 #include <optional>
-#include <CoreVideo/CoreVideo.h>
-#include <Metal/Metal.h>
 
-// Forward declarations
-@class MLModel;
-@class MLPredictionOptions;
+// Forward declarations for Core Video
+typedef struct __CVBuffer* CVPixelBufferRef;
 
 namespace RealTimeVideoAnalysis {
 
