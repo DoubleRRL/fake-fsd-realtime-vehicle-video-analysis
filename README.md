@@ -8,22 +8,17 @@ A professional video analysis application with multiple GUI interfaces for real-
 
 ## 🚀 Features
 
-- **Demo Version**: Simple video display with FPS counter
-- **Professional Version**: File browser + annotations + playback controls
 - **File Browser**: Browse and select video files from your computer
 - **UA-DETRAC Support**: Automatic loading and display of annotation files
 - **Real-Time Annotations**: Display detection boxes with vehicle type labels
 - **Performance Monitoring**: Real-time FPS, latency, and processing metrics
 - **Interactive Controls**: Adjust confidence thresholds, toggle features
 - **Playback Controls**: Play, pause, step through frames
-- **File Browser Only**: Browse and select video files, no camera access required
+- **No Camera Access**: File browser only, no permissions required
 
-## 📊 Application Versions
+## 📊 Application
 
-| Version | Description | Features |
-|---------|-------------|----------|
-| **Demo** | Basic video display | Video playback, FPS counter, basic controls |
-| **Professional** | Full-featured app | File browser, UA-DETRAC annotations, playback controls |
+A professional video analysis tool with file browser and annotation support.
 
 ## 🛠️ Quick Start
 
@@ -78,31 +73,19 @@ cd "/Users/RRL_1/realtime car vision"
 
 ### Step 4: Run the Application
 
-**For Demo (File Browser):**
 ```bash
 ./scripts/build_and_run.sh
 ```
 
-**For Professional Version (File Browser + Annotations):**
-```bash
-./scripts/build_and_run.sh pro
-```
+That's it! The script will automatically build and run the application for you.
 
-**With a Video File:**
+**With a specific video file:**
 ```bash
 ./scripts/build_and_run.sh /path/to/your/video.mp4
 ```
 
-That's it! The script will automatically build and run the application for you.
-
 ### What You'll See
 
-**Demo Version:**
-- File browser on the left to select video files
-- Video display on the right with playback controls
-- Simple interface with basic controls
-
-**Professional Version:**
 - **File Browser**: Browse and select video files from your computer
 - **UA-DETRAC Support**: Automatic loading of annotation files (.xml)
 - **Real-time Annotations**: Display detection boxes with vehicle types
@@ -112,15 +95,6 @@ That's it! The script will automatically build and run the application for you.
 
 ### Controls
 
-**Demo Version:**
-- **UP/DOWN**: Select video file in browser
-- **ENTER**: Load selected video
-- **SPACE**: Play/Pause video
-- **LEFT/RIGHT**: Step through frames
-- **F**: Toggle file browser
-- **ESC**: Quit
-
-**Professional Version:**
 - **SPACE**: Play/Pause video
 - **LEFT/RIGHT**: Step through frames
 - **A**: Toggle annotations
@@ -153,18 +127,14 @@ make -j$(nproc)
 **If you get "video file not found" errors:**
 - Make sure the video file path is correct
 - Try using the file browser instead: `./scripts/build_and_run.sh`
-- Or use the professional version: `./scripts/build_and_run.sh pro`
 
 ### Basic Usage
 
 ```bash
-# Demo version (file browser)
+# Start the application
 ./scripts/build_and_run.sh
 
-# Professional version (file browser + annotations)
-./scripts/build_and_run.sh pro
-
-# Demo with specific video file
+# Or load a specific video file
 ./scripts/build_and_run.sh /path/to/video.mp4
 ```
 
