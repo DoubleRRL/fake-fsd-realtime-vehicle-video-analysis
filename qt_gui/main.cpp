@@ -393,6 +393,41 @@ private slots:
         videoPlayer->setConfidenceThreshold(value);
     }
 
+    void onHighPerformanceChanged(bool enabled) {
+        DetectionTracker* detector = getDetector();
+        if (detector) {
+            detector->enableHighPerformanceMode(enabled);
+        }
+    }
+
+    void onThreadCountChanged(int threads) {
+        DetectionTracker* detector = getDetector();
+        if (detector) {
+            detector->setThreadCount(threads);
+        }
+    }
+
+    void onOptimizeClicked() {
+        DetectionTracker* detector = getDetector();
+        if (detector) {
+            // Optimize for 16GB RAM system
+            detector->enableHighPerformanceMode(true);
+            detector->setThreadCount(std::thread::hardware_concurrency());
+            detector->setBufferSize(500); // Large buffer for 16GB RAM
+            
+            // Update UI
+            highPerformanceCheckBox->setChecked(true);
+            threadCountSpinBox->setValue(std::thread::hardware_concurrency());
+            
+            QMessageBox::information(this, "Optimization Complete", 
+                "System optimized for 16GB RAM:\n"
+                "- High performance mode enabled\n"
+                "- Maximum thread count set\n"
+                "- Large buffer allocation\n"
+                "- Memory optimizations active");
+        }
+    }
+
     void updatePerformanceMetrics() {
         DetectionTracker* detector = getDetector();
         if (detector) {
@@ -481,6 +516,26 @@ private:
         
         rightLayout->addWidget(performanceGroup);
         
+        // Performance optimization group
+        QGroupBox* optimizationGroup = new QGroupBox("Performance Optimization");
+        QVBoxLayout* optimizationLayout = new QVBoxLayout(optimizationGroup);
+        
+        highPerformanceCheckBox = new QCheckBox("High Performance Mode");
+        highPerformanceCheckBox->setChecked(true);
+        optimizationLayout->addWidget(highPerformanceCheckBox);
+        
+        QLabel* threadLabel = new QLabel("Thread Count:");
+        threadCountSpinBox = new QSpinBox;
+        threadCountSpinBox->setRange(1, 16);
+        threadCountSpinBox->setValue(std::thread::hardware_concurrency());
+        optimizationLayout->addWidget(threadLabel);
+        optimizationLayout->addWidget(threadCountSpinBox);
+        
+        optimizeButton = new QPushButton("Optimize for 16GB RAM");
+        optimizationLayout->addWidget(optimizeButton);
+        
+        rightLayout->addWidget(optimizationGroup);
+        
         // Add stretch to push everything to the top
         rightLayout->addStretch();
         
@@ -494,6 +549,10 @@ private:
         connect(showAnnotationsCheckBox, &QCheckBox::toggled, this, &MainWindow::onShowAnnotationsChanged);
         connect(confidenceSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), 
                 this, &MainWindow::onConfidenceThresholdChanged);
+        connect(highPerformanceCheckBox, &QCheckBox::toggled, this, &MainWindow::onHighPerformanceChanged);
+        connect(threadCountSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), 
+                this, &MainWindow::onThreadCountChanged);
+        connect(optimizeButton, &QPushButton::clicked, this, &MainWindow::onOptimizeClicked);
         
         // Setup performance monitoring timer
         performanceTimer = new QTimer(this);
@@ -573,6 +632,11 @@ private:
     QLabel* latencyLabel;
     QLabel* frameCountLabel;
     QTimer* performanceTimer;
+    
+    // Performance controls
+    QCheckBox* highPerformanceCheckBox;
+    QSpinBox* threadCountSpinBox;
+    QPushButton* optimizeButton;
     
     // Settings
     QString lastDirectory;

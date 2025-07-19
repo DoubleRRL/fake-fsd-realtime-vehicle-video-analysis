@@ -59,6 +59,11 @@ public:
     void setMaxDisappeared(int frames) { max_disappeared_ = frames; }
     void setMinHits(int hits) { min_hits_ = hits; }
     void setIOUThreshold(float threshold) { iou_threshold_ = threshold; }
+    
+    // Performance settings
+    void enableHighPerformanceMode(bool enable = true);
+    void setThreadCount(int threads);
+    void setBufferSize(int size);
 
 private:
     // YOLO detection
@@ -80,6 +85,17 @@ private:
     double tracking_time_ms_;
     int active_tracks_;
     std::chrono::high_resolution_clock::time_point last_frame_time_;
+    
+    // Performance optimization buffers
+    cv::Mat frame_buffer_;
+    cv::Mat processed_buffer_;
+    std::vector<cv::Mat> blob_buffer_;
+    std::vector<Detection> detection_buffer_;
+    std::vector<TrackedObject> tracked_objects_buffer_;
+    
+    // Threading and optimization
+    int num_threads_;
+    bool use_optimizations_;
     
     // Detection methods
     std::vector<Detection> detectObjects(const cv::Mat& frame);

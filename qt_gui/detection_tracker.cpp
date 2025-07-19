@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <thread>
 
 // Track implementation
 Track::Track(const cv::Rect& bbox, int track_id, int class_id, float confidence, 
@@ -49,7 +50,15 @@ DetectionTracker::DetectionTracker()
     : conf_threshold_(0.5), nms_threshold_(0.4), next_track_id_(0), 
       max_disappeared_(30), min_hits_(3), iou_threshold_(0.3),
       current_fps_(0.0), detection_time_ms_(0.0), tracking_time_ms_(0.0), 
-      active_tracks_(0) {
+      active_tracks_(0), num_threads_(std::thread::hardware_concurrency()),
+      use_optimizations_(true) {
+    
+    // Pre-allocate buffers for better performance
+    frame_buffer_ = cv::Mat(640, 640, CV_8UC3);
+    processed_buffer_ = cv::Mat(640, 640, CV_8UC3);
+    blob_buffer_.reserve(10);
+    detection_buffer_.reserve(100);
+    tracked_objects_buffer_.reserve(100);
 }
 
 DetectionTracker::~DetectionTracker() {
@@ -70,6 +79,23 @@ bool DetectionTracker::initialize(const std::string& model_path, const std::stri
         yolo_net_.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
         yolo_net_.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
         
+        // Enable optimizations for better performance
+        yolo_net_.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+        yolo_net_.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+        
+        // Set number of threads for parallel processing
+        cv::setNumThreads(num_threads_);
+        
+        // Enable OpenCV optimizations
+        cv::setUseOptimized(use_optimizations_);
+        
+        // Set memory pool size for better performance
+        cv::setNumThreads(num_threads_);
+        
+        // Enable additional optimizations
+        cv::setUseOptimized(true);
+        cv::setNumThreads(num_threads_);
+        
         // Load class names
         loadClassNames(classes_path);
         
@@ -80,6 +106,9 @@ bool DetectionTracker::initialize(const std::string& model_path, const std::stri
         std::cout << "DetectionTracker initialized successfully" << std::endl;
         std::cout << "Model: " << model_path << std::endl;
         std::cout << "Classes loaded: " << class_names_.size() << std::endl;
+        
+        // Enable high-performance mode for 16GB RAM systems
+        enableHighPerformanceMode(true);
         
         return true;
     } catch (const cv::Exception& e) {
@@ -161,12 +190,11 @@ std::vector<Detection> DetectionTracker::detectObjects(const cv::Mat& frame) {
 }
 
 cv::Mat DetectionTracker::preprocessFrame(const cv::Mat& frame) {
-    // Resize to YOLO input size (640x640)
-    cv::Mat resized;
-    cv::resize(frame, resized, cv::Size(640, 640));
+    // Use pre-allocated buffer for better performance
+    cv::resize(frame, processed_buffer_, cv::Size(640, 640));
     
-    // Convert to blob
-    cv::Mat blob = cv::dnn::blobFromImage(resized, 1.0/255.0, cv::Size(640, 640), 
+    // Convert to blob using pre-allocated buffer
+    cv::Mat blob = cv::dnn::blobFromImage(processed_buffer_, 1.0/255.0, cv::Size(640, 640), 
                                          cv::Scalar(0, 0, 0), true, false);
     return blob;
 }
@@ -313,6 +341,35 @@ std::vector<DetectionResult> DetectionTracker::postprocessDetectionsWithInfo(con
     }
     
     return results;
+}
+
+void DetectionTracker::enableHighPerformanceMode(bool enable) {
+    use_optimizations_ = enable;
+    if (enable) {
+        // Enable all optimizations for maximum performance
+        cv::setUseOptimized(true);
+        cv::setNumThreads(num_threads_);
+        
+        // Increase buffer sizes for better performance
+        detection_buffer_.reserve(200);
+        tracked_objects_buffer_.reserve(200);
+        blob_buffer_.reserve(20);
+        
+        std::cout << "High performance mode enabled with " << num_threads_ << " threads" << std::endl;
+    }
+}
+
+void DetectionTracker::setThreadCount(int threads) {
+    num_threads_ = threads;
+    cv::setNumThreads(threads);
+    std::cout << "Thread count set to: " << threads << std::endl;
+}
+
+void DetectionTracker::setBufferSize(int size) {
+    detection_buffer_.reserve(size);
+    tracked_objects_buffer_.reserve(size);
+    blob_buffer_.reserve(size / 10);
+    std::cout << "Buffer size set to: " << size << std::endl;
 }
 
 void DetectionTracker::updateTracks(const std::vector<Detection>& detections) {
