@@ -8,7 +8,8 @@ A professional video analysis application with multiple GUI interfaces for real-
 
 ## 🚀 Features
 
-- **Multiple GUI Interfaces**: Simple demo, basic GUI, and professional version
+- **Demo Version**: Simple video display with FPS counter
+- **Professional Version**: File browser + annotations + playback controls
 - **File Browser**: Browse and select video files from your computer
 - **UA-DETRAC Support**: Automatic loading and display of annotation files
 - **Real-Time Annotations**: Display detection boxes with vehicle type labels
@@ -21,8 +22,7 @@ A professional video analysis application with multiple GUI interfaces for real-
 
 | Version | Description | Features |
 |---------|-------------|----------|
-| **Simple Demo** | Basic OpenCV window | Video display, FPS counter, basic controls |
-| **GUI Version** | Advanced interface | Performance panels, interactive controls, detection toggles |
+| **Demo** | Basic video display | Video playback, FPS counter, basic controls |
 | **Professional** | Full-featured app | File browser, UA-DETRAC annotations, playback controls |
 
 ## 🛠️ Quick Start
@@ -49,68 +49,58 @@ xcode-select --install
 brew install opencv glfw
 ```
 
-### 🚀 Super Easy Way (Recommended)
+## 🚀 Super Simple Instructions (For Total Beginners)
 
-If you want the easiest way to run this, just use our script:
+### Step 1: Open Terminal
+- Press `Cmd + Space` on your keyboard
+- Type "Terminal" and press Enter
+
+### Step 2: Install Required Software
+Copy and paste these commands one by one:
 
 ```bash
-# Simple demo (basic OpenCV window)
+# Install Homebrew (if you don't have it)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install required software
+brew install opencv glfw
+```
+
+### Step 3: Download the Project
+```bash
+# Go to your Downloads folder
+cd ~/Downloads
+
+# Download the project (replace with your actual download method)
+# If you have the files locally, just navigate to the folder
+cd "/Users/RRL_1/realtime car vision"
+```
+
+### Step 4: Run the Application
+
+**For Demo (Simple Video Display):**
+```bash
 ./scripts/build_and_run.sh camera
+```
 
-# GUI version (advanced interface with controls)
-./scripts/build_and_run.sh camera gui
-
-# Professional version (file browser + UA-DETRAC annotations)
+**For Professional Version (File Browser + Annotations):**
+```bash
 ./scripts/build_and_run.sh pro
+```
 
-# Or with a video file:
+**With a Video File:**
+```bash
 ./scripts/build_and_run.sh /path/to/your/video.mp4
-./scripts/build_and_run.sh /path/to/your/video.mp4 gui
 ```
 
-This will automatically build and run the demo for you!
-
-**Note**: The GUI versions require GLFW and OpenGL, which are installed with the `brew install glfw` command.
-
-### Step 2: Build the Simple Video Demo
-
-```bash
-# Go to the standalone demo folder
-cd standalone_demo
-
-# Build the simple video demo
-cmake -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/opencv .
-make -j$(nproc)
-
-# If you get OpenCV errors, try this instead:
-# cmake -DCMAKE_PREFIX_PATH=/opt/homebrew/opt/opencv .
-# make -j$(nproc)
-```
-
-### Step 3: Run the Program
-
-```bash
-# Run with your webcam
-./SimpleVideoDemo camera
-
-# Or run with any video file you have
-./SimpleVideoDemo /path/to/your/video.mp4
-
-# Or run with a sample video (if you have one)
-./SimpleVideoDemo sample_video.mp4
-```
+That's it! The script will automatically build and run the application for you.
 
 ### What You'll See
 
-**Simple Demo:**
+**Demo Version:**
 - A window will open showing the video with real-time FPS counter
 - Frame number and current FPS displayed on screen
 - Press 'q' to quit, 's' to save current frame
-
-**GUI Version:**
-- Advanced interface with performance panels and controls
-- Interactive detection toggles and confidence sliders
-- Real-time performance graphs and metrics
 
 **Professional Version:**
 - **File Browser**: Browse and select video files from your computer
@@ -122,16 +112,10 @@ make -j$(nproc)
 
 ### Controls
 
-**Simple Demo:**
+**Demo Version:**
 - **q**: Quit the program
 - **s**: Save current frame as JPEG
 - **Any other key**: Continue playing
-
-**GUI Version:**
-- **ESC**: Quit
-- **D**: Toggle detection
-- **P**: Toggle performance overlay
-- **Mouse**: Adjust confidence threshold
 
 **Professional Version:**
 - **SPACE**: Play/Pause video
@@ -171,17 +155,11 @@ make -j$(nproc)
 ### Basic Usage
 
 ```bash
-# Simple demo with camera
+# Demo with camera
 ./scripts/build_and_run.sh camera
 
-# Simple demo with video file
+# Demo with video file
 ./scripts/build_and_run.sh /path/to/video.mp4
-
-# GUI version with camera
-./scripts/build_and_run.sh camera gui
-
-# GUI version with video file
-./scripts/build_and_run.sh /path/to/video.mp4 gui
 
 # Professional version (file browser)
 ./scripts/build_and_run.sh pro
