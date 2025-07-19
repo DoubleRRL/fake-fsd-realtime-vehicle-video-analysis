@@ -244,50 +244,90 @@ private:
         
         if (frame.empty()) return;
         
-        // Run detection and tracking if enabled
+        // Run detection and tracking if enabled with error handling
         if (showAnnotations && detection_initialized_ && detector_) {
-            current_tracked_objects_ = detector_->processFrame(frame);
-            drawDetections(frame, current_tracked_objects_);
+            try {
+                current_tracked_objects_ = detector_->processFrame(frame);
+                drawDetections(frame, current_tracked_objects_);
+            } catch (const std::exception& e) {
+                std::cerr << "Error during detection processing: " << e.what() << std::endl;
+                // Continue without annotations if detection fails
+                current_tracked_objects_.clear();
+            } catch (...) {
+                std::cerr << "Unknown error during detection processing" << std::endl;
+                current_tracked_objects_.clear();
+            }
         }
         
-        // Convert to Qt format
-        cv::Mat rgbFrame;
-        cv::cvtColor(frame, rgbFrame, cv::COLOR_BGR2RGB);
-        
-        QImage qimg(rgbFrame.data, rgbFrame.cols, rgbFrame.rows, rgbFrame.step, QImage::Format_RGB888);
-        QPixmap pixmap = QPixmap::fromImage(qimg);
-        
-        // Scale to fit the label while maintaining aspect ratio
-        pixmap = pixmap.scaled(videoLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        videoLabel->setPixmap(pixmap);
+        // Convert to Qt format with error handling
+        try {
+            cv::Mat rgbFrame;
+            cv::cvtColor(frame, rgbFrame, cv::COLOR_BGR2RGB);
+            
+            QImage qimg(rgbFrame.data, rgbFrame.cols, rgbFrame.rows, rgbFrame.step, QImage::Format_RGB888);
+            QPixmap pixmap = QPixmap::fromImage(qimg);
+            
+            // Scale to fit the label while maintaining aspect ratio
+            pixmap = pixmap.scaled(videoLabel->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            videoLabel->setPixmap(pixmap);
+        } catch (const std::exception& e) {
+            std::cerr << "Error during frame conversion: " << e.what() << std::endl;
+        } catch (...) {
+            std::cerr << "Unknown error during frame conversion" << std::endl;
+        }
     }
 
     void drawDetections(cv::Mat& frame, const std::vector<TrackedObject>& objects) {
-        for (const auto& obj : objects) {
-            // Draw bounding box
-            cv::Scalar color = cv::Scalar(0, 255, 0); // Green for vehicles
-            if (obj.class_name == "car" || obj.class_name == "truck" || obj.class_name == "bus") {
-                color = cv::Scalar(0, 255, 0); // Green
-            } else if (obj.class_name == "person") {
-                color = cv::Scalar(255, 0, 0); // Blue
-            } else {
-                color = cv::Scalar(0, 0, 255); // Red
+        try {
+            for (const auto& obj : objects) {
+                // Validate bounding box
+                if (obj.bbox.x < 0 || obj.bbox.y < 0 || 
+                    obj.bbox.x + obj.bbox.width > frame.cols || 
+                    obj.bbox.y + obj.bbox.height > frame.rows) {
+                    continue; // Skip invalid bounding boxes
+                }
+                
+                // Draw bounding box
+                cv::Scalar color = cv::Scalar(0, 255, 0); // Green for vehicles
+                if (obj.class_name == "car" || obj.class_name == "truck" || obj.class_name == "bus") {
+                    color = cv::Scalar(0, 255, 0); // Green
+                } else if (obj.class_name == "person") {
+                    color = cv::Scalar(255, 0, 0); // Blue
+                } else {
+                    color = cv::Scalar(0, 0, 255); // Red
+                }
+                
+                cv::rectangle(frame, obj.bbox, color, 2);
+                
+                // Draw label with track ID and class
+                std::string label = obj.class_name + " #" + std::to_string(obj.track_id);
+                if (obj.confidence > 0) {
+                    label += " (" + std::to_string(static_cast<int>(obj.confidence * 100)) + "%)";
+                }
+                
+                int baseline = 0;
+                cv::Size text_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseline);
+                
+                // Ensure text box is within frame bounds
+                int text_x = obj.bbox.x;
+                int text_y = obj.bbox.y - text_size.height - 10;
+                int text_width = text_size.width;
+                int text_height = text_size.height + 10;
+                
+                if (text_y < 0) text_y = obj.bbox.y + obj.bbox.height;
+                if (text_x + text_width > frame.cols) text_x = frame.cols - text_width;
+                
+                cv::rectangle(frame, cv::Point(text_x, text_y),
+                             cv::Point(text_x + text_width, text_y + text_height), color, -1);
+                cv::putText(frame, label, cv::Point(text_x, text_y + text_height - 5),
+                           cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
             }
-            
-            cv::rectangle(frame, obj.bbox, color, 2);
-            
-            // Draw label with track ID and class
-            std::string label = obj.class_name + " #" + std::to_string(obj.track_id);
-            if (obj.confidence > 0) {
-                label += " (" + std::to_string(static_cast<int>(obj.confidence * 100)) + "%)";
-            }
-            
-            int baseline = 0;
-            cv::Size text_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseline);
-            cv::rectangle(frame, cv::Point(obj.bbox.x, obj.bbox.y - text_size.height - 10),
-                         cv::Point(obj.bbox.x + text_size.width, obj.bbox.y), color, -1);
-            cv::putText(frame, label, cv::Point(obj.bbox.x, obj.bbox.y - 5),
-                       cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
+        } catch (const cv::Exception& e) {
+            std::cerr << "OpenCV error in drawDetections: " << e.what() << std::endl;
+        } catch (const std::exception& e) {
+            std::cerr << "Error in drawDetections: " << e.what() << std::endl;
+        } catch (...) {
+            std::cerr << "Unknown error in drawDetections" << std::endl;
         }
     }
 

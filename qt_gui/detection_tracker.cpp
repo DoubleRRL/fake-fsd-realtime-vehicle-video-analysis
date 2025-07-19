@@ -118,75 +118,109 @@ bool DetectionTracker::initialize(const std::string& model_path, const std::stri
 }
 
 std::vector<TrackedObject> DetectionTracker::processFrame(const cv::Mat& frame) {
-    auto start_time = std::chrono::high_resolution_clock::now();
-    
-    // Detect objects
-    auto detection_start = std::chrono::high_resolution_clock::now();
-    std::vector<Detection> detections = detectObjects(frame);
-    auto detection_end = std::chrono::high_resolution_clock::now();
-    detection_time_ms_ = std::chrono::duration<double, std::milli>(detection_end - detection_start).count();
-    
-    // Update tracks
-    auto tracking_start = std::chrono::high_resolution_clock::now();
-    updateTracks(detections);
-    auto tracking_end = std::chrono::high_resolution_clock::now();
-    tracking_time_ms_ = std::chrono::duration<double, std::milli>(tracking_end - tracking_start).count();
-    
-    // Create tracked objects list
-    std::vector<TrackedObject> tracked_objects;
-    active_tracks_ = 0;
-    
-    for (const auto& track : tracks_) {
-        if (track->getTimeSinceUpdate() < max_disappeared_ && track->isConfirmed()) {
-            TrackedObject obj;
-            obj.track_id = track->getTrackId();
-            obj.bbox = track->getBBox();
-            obj.confidence = track->getConfidence();
-            obj.class_id = track->getClassId();
-            obj.class_name = track->getClassName();
-            obj.age = track->getAge();
-            obj.total_hits = track->getTotalHits();
-            obj.time_since_update = track->getTimeSinceUpdate();
-            
-            tracked_objects.push_back(obj);
-            active_tracks_++;
+    try {
+        auto start_time = std::chrono::high_resolution_clock::now();
+        
+        // Detect objects
+        auto detection_start = std::chrono::high_resolution_clock::now();
+        std::vector<Detection> detections = detectObjects(frame);
+        auto detection_end = std::chrono::high_resolution_clock::now();
+        detection_time_ms_ = std::chrono::duration<double, std::milli>(detection_end - detection_start).count();
+        
+        // Update tracks
+        auto tracking_start = std::chrono::high_resolution_clock::now();
+        updateTracks(detections);
+        auto tracking_end = std::chrono::high_resolution_clock::now();
+        tracking_time_ms_ = std::chrono::duration<double, std::milli>(tracking_end - tracking_start).count();
+        
+        // Create tracked objects list
+        std::vector<TrackedObject> tracked_objects;
+        active_tracks_ = 0;
+        
+        for (const auto& track : tracks_) {
+            if (track->getTimeSinceUpdate() < max_disappeared_ && track->isConfirmed()) {
+                TrackedObject obj;
+                obj.track_id = track->getTrackId();
+                obj.bbox = track->getBBox();
+                obj.confidence = track->getConfidence();
+                obj.class_id = track->getClassId();
+                obj.class_name = track->getClassName();
+                obj.age = track->getAge();
+                obj.total_hits = track->getTotalHits();
+                obj.time_since_update = track->getTimeSinceUpdate();
+                
+                tracked_objects.push_back(obj);
+                active_tracks_++;
+            }
         }
+        
+        // Calculate FPS
+        auto end_time = std::chrono::high_resolution_clock::now();
+        double frame_time = std::chrono::duration<double, std::milli>(end_time - start_time).count();
+        current_fps_ = 1000.0 / frame_time;
+        
+        return tracked_objects;
+    } catch (const cv::Exception& e) {
+        std::cerr << "OpenCV error in processFrame: " << e.what() << std::endl;
+        return std::vector<TrackedObject>();
+    } catch (const std::exception& e) {
+        std::cerr << "Error in processFrame: " << e.what() << std::endl;
+        return std::vector<TrackedObject>();
+    } catch (...) {
+        std::cerr << "Unknown error in processFrame" << std::endl;
+        return std::vector<TrackedObject>();
     }
-    
-    // Calculate FPS
-    auto end_time = std::chrono::high_resolution_clock::now();
-    double frame_time = std::chrono::duration<double, std::milli>(end_time - start_time).count();
-    current_fps_ = 1000.0 / frame_time;
-    
-    return tracked_objects;
 }
 
 std::vector<Detection> DetectionTracker::detectObjects(const cv::Mat& frame) {
-    std::vector<Detection> detections;
-    
-    // Preprocess frame
-    cv::Mat blob = preprocessFrame(frame);
-    
-    // Run inference
-    yolo_net_.setInput(blob);
-    std::vector<cv::Mat> outputs;
-    yolo_net_.forward(outputs, yolo_net_.getUnconnectedOutLayersNames());
-    
-    // Postprocess detections with confidence and class info
-    auto detection_results = postprocessDetectionsWithInfo(outputs[0], frame.size());
-    
-    // Convert to Detection objects
-    for (const auto& result : detection_results) {
-        Detection det;
-        det.bbox = result.box;
-        det.confidence = result.confidence;
-        det.class_id = result.class_id;
-        det.class_name = (result.class_id < class_names_.size()) ? 
-                        class_names_[result.class_id] : "unknown";
-        detections.push_back(det);
+    try {
+        std::vector<Detection> detections;
+        
+        // Check if model is loaded
+        if (yolo_net_.empty()) {
+            std::cerr << "Warning: YOLO model not loaded, returning empty detections" << std::endl;
+            return detections;
+        }
+        
+        // Preprocess frame
+        cv::Mat blob = preprocessFrame(frame);
+        
+        // Run inference
+        yolo_net_.setInput(blob);
+        std::vector<cv::Mat> outputs;
+        yolo_net_.forward(outputs, yolo_net_.getUnconnectedOutLayersNames());
+        
+        // Check if we got valid output
+        if (outputs.empty() || outputs[0].empty()) {
+            std::cerr << "Warning: No valid output from YOLO model" << std::endl;
+            return detections;
+        }
+        
+        // Postprocess detections with confidence and class info
+        auto detection_results = postprocessDetectionsWithInfo(outputs[0], frame.size());
+        
+        // Convert to Detection objects
+        for (const auto& result : detection_results) {
+            Detection det;
+            det.bbox = result.box;
+            det.confidence = result.confidence;
+            det.class_id = result.class_id;
+            det.class_name = (result.class_id < class_names_.size()) ? 
+                            class_names_[result.class_id] : "unknown";
+            detections.push_back(det);
+        }
+        
+        return detections;
+    } catch (const cv::Exception& e) {
+        std::cerr << "OpenCV error in detectObjects: " << e.what() << std::endl;
+        return std::vector<Detection>();
+    } catch (const std::exception& e) {
+        std::cerr << "Error in detectObjects: " << e.what() << std::endl;
+        return std::vector<Detection>();
+    } catch (...) {
+        std::cerr << "Unknown error in detectObjects" << std::endl;
+        return std::vector<Detection>();
     }
-    
-    return detections;
 }
 
 cv::Mat DetectionTracker::preprocessFrame(const cv::Mat& frame) {
