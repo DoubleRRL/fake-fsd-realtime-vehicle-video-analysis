@@ -72,9 +72,23 @@ python vehicle_detector.py --source video.mp4 --conf 0.5
 python vehicle_detector.py --source video.mp4 --save
 ```
 
-## 🖥️ Professional GUI
+## 🖥️ GUI Options
 
-### Qt Video Analysis Interface
+### Python GUI (Recommended - Simple)
+```bash
+# Run the Python GUI (uses same YOLO models as command-line)
+python gui_detector.py
+```
+
+### Qt GUI (Professional Interface)
+
+#### Quick Start
+```bash
+# Run the Qt GUI with one command
+./run_gui.sh
+```
+
+#### Manual Build & Run
 ```bash
 # Build Qt GUI (requires Qt development libraries)
 cd qt_gui
@@ -83,7 +97,7 @@ cmake ..
 make
 
 # Run Qt GUI
-./ProfessionalVideoAnalysis
+./ProfessionalVideoAnalysis.app/Contents/MacOS/ProfessionalVideoAnalysis
 ```
 
 ## 📋 Command Line Options
