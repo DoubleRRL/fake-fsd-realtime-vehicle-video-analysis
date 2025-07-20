@@ -122,13 +122,13 @@ make
 
 ## 📊 Performance
 
-**Test Results (M1 Mac):**
+**Test Results (M2 Mac):**
 - **Model**: YOLOv8n (nano) - optimized for speed
 - **Resolution**: 1280x720
-- **Average FPS**: 26.2
-- **Min FPS**: 21.7
-- **Max FPS**: 28.5
-- **Inference Time**: ~38ms per frame
+- **Average FPS**: 27.2
+- **Min FPS**: 26.3
+- **Max FPS**: 28.3
+- **Inference Time**: ~37ms per frame
 
 ## 🎮 Controls
 
