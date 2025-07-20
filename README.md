@@ -117,7 +117,8 @@ make
 - **Motorcycle** (class 3)
 - **Bicycle** (class 1)
 - **Person** (class 0)
-- **Boat** (class 8)
+- **Airplane** (class 4)
+- **Train** (class 6)
 
 ## 📊 Performance
 
