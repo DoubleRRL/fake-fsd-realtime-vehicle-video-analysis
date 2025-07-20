@@ -10,6 +10,8 @@ A high-performance vehicle detection and tracking system using **YOLOv8** and **
 - **🎨 Clean Visualization**: Professional bounding boxes and labels
 - **🔧 Easy Configuration**: Simple command-line interface
 - **📱 Multiple Sources**: Support for video files, webcams, and live streams
+- **🖥️ Professional GUI**: Qt-based video analysis interface with file browser
+- **🎮 OpenGL Demo**: Standalone OpenGL GUI for cross-platform compatibility
 
 ## 🛠️ Technology Stack
 
@@ -71,6 +73,31 @@ python vehicle_detector.py --source video.mp4 --conf 0.5
 python vehicle_detector.py --source video.mp4 --save
 ```
 
+## 🖥️ GUI Options
+
+### Qt GUI (Professional Interface)
+```bash
+# Build Qt GUI (requires Qt development libraries)
+cd qt_gui
+mkdir build && cd build
+cmake ..
+make
+
+# Run Qt GUI
+./ProfessionalVideoAnalysis
+```
+
+### OpenGL GUI (Standalone Demo)
+```bash
+# Run OpenGL GUI (pre-compiled)
+./standalone_demo/ProfessionalVideoGUI
+
+# Or build from source
+cd standalone_demo
+make
+./ProfessionalVideoGUI
+```
+
 ## 📋 Command Line Options
 
 | Option | Description | Default |
@@ -109,7 +136,7 @@ python vehicle_detector.py --source video.mp4 --save
 
 ```
 realtime car vision/
-├── vehicle_detector.py      # Main detection script
+├── vehicle_detector.py      # Main detection script (Python)
 ├── requirements.txt         # Python dependencies
 ├── README.md               # This file
 ├── yolov8n.pt             # YOLOv8 nano model (6MB)
@@ -117,6 +144,16 @@ realtime car vision/
 ├── yolov8m.pt             # YOLOv8 medium model (50MB)
 ├── yolov8l.pt             # YOLOv8 large model (84MB)
 ├── yolov8x.pt             # YOLOv8 xlarge model (131MB)
+├── qt_gui/                # Professional Qt GUI
+│   ├── main.cpp           # Qt main application
+│   ├── detection_tracker.cpp # Detection and tracking logic
+│   └── CMakeLists.txt     # Qt build configuration
+├── standalone_demo/       # OpenGL standalone GUI
+│   ├── professional_gui_demo.cpp # OpenGL GUI implementation
+│   └── ProfessionalVideoGUI # Compiled OpenGL executable
+├── src/modules/           # Core modules
+│   ├── GUIModule.cpp      # GUI module implementation
+│   └── GUIModule.hpp      # GUI module header
 ├── data/
 │   └── sample_videos/      # Sample videos for testing
 │       └── videoplayback testing.mp4  # Included test video (3.2MB)
