@@ -53,6 +53,9 @@ python -c "from ultralytics import YOLO; YOLO('yolov8x.pt')"  # xlarge (131MB)
 # Detect vehicles in a video file
 python vehicle_detector.py --source your_video.mp4
 
+# Test with included sample video (trimmed for quick testing)
+python vehicle_detector.py --source "data/sample_videos/videoplayback testing.mp4"
+
 # Use webcam (camera index 0)
 python vehicle_detector.py --source 0
 
@@ -116,6 +119,7 @@ realtime car vision/
 ├── yolov8x.pt             # YOLOv8 xlarge model (131MB)
 ├── data/
 │   └── sample_videos/      # Sample videos for testing
+│       └── videoplayback testing.mp4  # Included test video (3.2MB)
 └── output_*.mp4           # Output videos (when using --save)
 ```
 

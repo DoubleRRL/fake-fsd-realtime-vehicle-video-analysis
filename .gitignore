@@ -50,6 +50,9 @@ data/sample_videos/*.mp4
 data/sample_videos/*.avi
 data/sample_videos/*.mov
 
+# Allow trimmed test video (small enough for git)
+!data/sample_videos/videoplayback testing.mp4
+
 # Benchmark outputs
 benchmark_output.mp4
 benchmark_report.json
