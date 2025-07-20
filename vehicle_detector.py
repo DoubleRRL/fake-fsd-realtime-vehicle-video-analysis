@@ -22,6 +22,8 @@ except ImportError as e:
     print("Please install: pip install ultralytics supervision")
     sys.exit(1)
 
+
+
 class VehicleDetector:
     """Modern vehicle detection and tracking using YOLOv12"""
     
@@ -220,6 +222,7 @@ def main():
                        help="Confidence threshold")
     parser.add_argument("--save", action="store_true",
                        help="Save output video")
+
     args = parser.parse_args()
     
     # Initialize detector

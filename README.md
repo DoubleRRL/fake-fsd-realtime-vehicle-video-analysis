@@ -32,7 +32,22 @@ conda activate vehicle_detection
 pip install ultralytics supervision torch torchvision opencv-python
 ```
 
-### 2. Run Vehicle Detection
+### 2. Download YOLO Models
+
+The system will automatically download YOLO models on first run, but you can also download them manually:
+
+```bash
+# Download YOLOv8 models (models will be saved to current directory)
+python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"  # nano (6MB)
+python -c "from ultralytics import YOLO; YOLO('yolov8s.pt')"  # small (22MB)
+python -c "from ultralytics import YOLO; YOLO('yolov8m.pt')"  # medium (50MB)
+python -c "from ultralytics import YOLO; YOLO('yolov8l.pt')"  # large (84MB)
+python -c "from ultralytics import YOLO; YOLO('yolov8x.pt')"  # xlarge (131MB)
+```
+
+**Note**: Models are automatically downloaded to the current directory on first use.
+
+### 3. Run Vehicle Detection
 
 ```bash
 # Detect vehicles in a video file
@@ -94,9 +109,14 @@ realtime car vision/
 ├── vehicle_detector.py      # Main detection script
 ├── requirements.txt         # Python dependencies
 ├── README.md               # This file
+├── yolov8n.pt             # YOLOv8 nano model (6MB)
+├── yolov8s.pt             # YOLOv8 small model (22MB)
+├── yolov8m.pt             # YOLOv8 medium model (50MB)
+├── yolov8l.pt             # YOLOv8 large model (84MB)
+├── yolov8x.pt             # YOLOv8 xlarge model (131MB)
 ├── data/
 │   └── sample_videos/      # Sample videos for testing
-└── models/                 # YOLOv8 models (auto-downloaded)
+└── output_*.mp4           # Output videos (when using --save)
 ```
 
 ## 🔧 Model Selection Guide
