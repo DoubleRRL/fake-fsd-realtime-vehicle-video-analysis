@@ -11,7 +11,6 @@ A high-performance vehicle detection and tracking system using **YOLOv8** and **
 - **🔧 Easy Configuration**: Simple command-line interface
 - **📱 Multiple Sources**: Support for video files, webcams, and live streams
 - **🖥️ Professional GUI**: Qt-based video analysis interface with file browser
-- **🎮 OpenGL Demo**: Standalone OpenGL GUI for cross-platform compatibility
 
 ## 🛠️ Technology Stack
 
@@ -73,9 +72,9 @@ python vehicle_detector.py --source video.mp4 --conf 0.5
 python vehicle_detector.py --source video.mp4 --save
 ```
 
-## 🖥️ GUI Options
+## 🖥️ Professional GUI
 
-### Qt GUI (Professional Interface)
+### Qt Video Analysis Interface
 ```bash
 # Build Qt GUI (requires Qt development libraries)
 cd qt_gui
@@ -85,17 +84,6 @@ make
 
 # Run Qt GUI
 ./ProfessionalVideoAnalysis
-```
-
-### OpenGL GUI (Standalone Demo)
-```bash
-# Run OpenGL GUI (pre-compiled)
-./standalone_demo/ProfessionalVideoGUI
-
-# Or build from source
-cd standalone_demo
-make
-./ProfessionalVideoGUI
 ```
 
 ## 📋 Command Line Options
@@ -148,9 +136,7 @@ realtime car vision/
 │   ├── main.cpp           # Qt main application
 │   ├── detection_tracker.cpp # Detection and tracking logic
 │   └── CMakeLists.txt     # Qt build configuration
-├── standalone_demo/       # OpenGL standalone GUI
-│   ├── professional_gui_demo.cpp # OpenGL GUI implementation
-│   └── ProfessionalVideoGUI # Compiled OpenGL executable
+
 ├── src/modules/           # Core modules
 │   ├── GUIModule.cpp      # GUI module implementation
 │   └── GUIModule.hpp      # GUI module header
