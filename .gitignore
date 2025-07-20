@@ -41,6 +41,10 @@ Makefile
 *.mlmodel
 models/*.mlmodel
 
+# YOLO model files (can be large)
+*.pt
+models/*.pt
+
 # Sample videos (can be large)
 data/sample_videos/*.mp4
 data/sample_videos/*.avi
