@@ -96,6 +96,12 @@ env/
 venv/
 ENV/
 
+# Qt build artifacts
+qt_gui/build/
+qt_gui/ProfessionalVideoAnalysis_autogen/
+qt_gui/.qt/
+*.app/Contents/MacOS/
+
 # Metal shader cache
 *.metallib
 *.air
