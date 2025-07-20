@@ -74,10 +74,28 @@ python vehicle_detector.py --source video.mp4 --save
 
 ## 🖥️ GUI Options
 
-### Python GUI (Recommended - Simple)
+### Python GUI (Recommended - Feature-Rich)
 ```bash
-# Run the Python GUI (uses same YOLO models as command-line)
-python gui_detector.py
+# Activate the correct environment first
+conda activate vehicle_detection
+
+# Run the optimized Python GUI
+python gui.py
+```
+
+**Features:**
+- ✅ Real-time confidence values (0.50, 0.75, etc.)
+- ✅ Performance metrics (FPS, memory, CPU usage)
+- ✅ Model descriptions for each YOLO variant
+- ✅ Thread control (1-2 threads for stability)
+- ✅ Downsampling options (0.1-1.0 factor)
+- ✅ Clean, single interface with no bloat
+- ✅ Live detection count and processing time
+- ✅ Frame navigation with slider
+
+**Alternative launcher:**
+```bash
+./run_gui.sh
 ```
 
 ### Qt GUI (Professional Interface)
@@ -140,6 +158,8 @@ make
 ```
 realtime car vision/
 ├── vehicle_detector.py      # Main detection script (Python)
+├── gui.py                  # Optimized Python GUI (feature-rich)
+├── run_gui.sh             # GUI launcher script
 ├── requirements.txt         # Python dependencies
 ├── README.md               # This file
 ├── yolov8n.pt             # YOLOv8 nano model (6MB)
@@ -151,7 +171,6 @@ realtime car vision/
 │   ├── main.cpp           # Qt main application
 │   ├── detection_tracker.cpp # Detection and tracking logic
 │   └── CMakeLists.txt     # Qt build configuration
-
 ├── src/modules/           # Core modules
 │   ├── GUIModule.cpp      # GUI module implementation
 │   └── GUIModule.hpp      # GUI module header
@@ -213,6 +232,8 @@ python vehicle_detector.py --model s --conf 0.4
 
 2. **"No module named 'supervision'"**
    ```bash
+   # Make sure you're in the correct environment
+   conda activate vehicle_detection
    pip install supervision
    ```
 
